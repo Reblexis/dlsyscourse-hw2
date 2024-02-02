@@ -8,8 +8,6 @@ import needle.nn as nn
 sys.path.append("./apps")
 from mlp_resnet import *
 
-import mugrade
-
 """Deterministically generate a matrix"""
 
 
