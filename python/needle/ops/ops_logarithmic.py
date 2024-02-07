@@ -28,16 +28,36 @@ class LogSumExp(TensorOp):
         self.axes = axes
 
     def compute(self, Z):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        if self.axes is None:
+            self.axes = tuple(range(len(Z.shape)))
+        max_Z = array_api.max(Z, axis=self.axes)
+        max_Z_keepdim = array_api.max(Z, axis=self.axes, keepdims=True)
+        return array_api.log(array_api.sum(array_api.exp(Z - max_Z_keepdim), axis=self.axes)) + max_Z
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        Z = node.inputs[0]
+        exp_t = exp(Z - Z.realize_cached_data().max(axis=self.axes, keepdims=True))
+        sum_t = summation(exp_t, axes=self.axes)
+
+        g1 = out_grad / sum_t
+
+        if not self.axes:
+            g2 = broadcast_to(g1, exp_t.shape)
+        else:
+            exp_t_shape = list(exp_t.shape)
+            for i in self.axes:
+                exp_t_shape[i] = 1
+            exp_t_shape = tuple(exp_t_shape)
+            g2 = broadcast_to(g1.reshape(exp_t_shape), exp_t.shape)
+
+        return g2 * exp_t
+
 
 
 def logsumexp(a, axes=None):
-    return LogSumExp(axes=axes)(a)
+    if axes is None:
+        axes = tuple(range(len(a.shape)))
+    max_a = maximum(a, axes)
+    max_a_keepdim = broadcast_to(reshape(max_a, [1 if i in axes else a.shape[i] for i in range(len(a.shape))]), a.shape)
+    return log(summation(exp(a - max_a_keepdim), axes)) + max_a
 

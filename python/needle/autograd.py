@@ -389,6 +389,9 @@ def compute_gradient_of_variables(output_tensor, out_grad):
         for j in range(1, len(node_to_output_grads_list[node])):
             node.grad += node_to_output_grads_list[node][j]
 
+        if i==8:
+            pass
+
         for k in range(len(node.inputs)):
             node_to_output_grads_list.setdefault(node.inputs[k], []).append(
                 node.op.gradient_as_tuple(node.grad, node)[k]

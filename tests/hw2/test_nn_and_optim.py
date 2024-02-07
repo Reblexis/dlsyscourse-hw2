@@ -469,29 +469,29 @@ def test_op_power_scalar_backward_1():
 
 
 def test_op_logsoftmax_forward_1():
-	np.testing.assert_allclose(logsoftmax_forward((3, 3)),
-		np.array([[-1.6436583 , -2.7936583 , -0.29365814],
-		 [-0.6787312 , -1.3287311 , -1.4787312 ],
-		 [-0.16337626, -3.0633762 , -2.2633762 ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(logsoftmax_forward((3, 3)),
+        np.array([[-1.6436583 , -2.7936583 , -0.29365814],
+         [-0.6787312 , -1.3287311 , -1.4787312 ],
+         [-0.16337626, -3.0633762 , -2.2633762 ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
 
 def test_op_logsoftmax_stable_forward_1():
-	np.testing.assert_allclose(logsoftmax_forward((3, 3), mult=1e5),
-		np.array([[-135000.02, -250000. , 0. ],
-		 [ 0. , -65000. , -80000. ],
-		 [ 0. , -290000. , -210000. ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(logsoftmax_forward((3, 3), mult=1e5),
+        np.array([[-135000.02, -250000. , 0. ],
+         [ 0. , -65000. , -80000. ],
+         [ 0. , -290000. , -210000. ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
 
 def test_op_logsoftmax_backward_1():
-	np.testing.assert_allclose(logsoftmax_backward((3, 3)),
-		np.array([[-1.4585897 , -5.008274 , 6.4668627 ],
-		 [ 2.1793516 , -0.81108296, -1.3682691 ],
-		 [ 8.998467 , -5.613649 , -3.3848193 ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(logsoftmax_backward((3, 3)),
+        np.array([[-1.4585897 , -5.008274 , 6.4668627 ],
+         [ 2.1793516 , -0.81108296, -1.3682691 ],
+         [ 8.998467 , -5.613649 , -3.3848193 ]], dtype=np.float32), rtol=1e-5, atol=1e-5)
 
 def submit_op_logsoftmax():
-	mugrade.submit(logsoftmax_forward((3, 4)))
-	mugrade.submit(logsoftmax_forward((3, 5), mult=1e5))
-	mugrade.submit(logsoftmax_forward((3, 6), mult=1e5))
-	mugrade.submit(logsoftmax_backward((1, 3)))
-	mugrade.submit(logsoftmax_backward((3, 6), mult=1e5))
+    mugrade.submit(logsoftmax_forward((3, 4)))
+    mugrade.submit(logsoftmax_forward((3, 5), mult=1e5))
+    mugrade.submit(logsoftmax_forward((3, 6), mult=1e5))
+    mugrade.submit(logsoftmax_backward((1, 3)))
+    mugrade.submit(logsoftmax_backward((3, 6), mult=1e5))
  
 
 def test_op_logsumexp_forward_1():

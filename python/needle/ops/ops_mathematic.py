@@ -166,9 +166,12 @@ class Reshape(TensorOp):
         self.shape = shape
 
     def compute(self, a):
+        print(f"Reshape: {a.shape} -> {self.shape}")
         return array_api.reshape(a, self.shape)
 
     def gradient(self, out_grad, node):
+        # print all shapes
+        print(f"gradient reshape: {out_grad.shape} -> {node.inputs[0].shape}")
         return reshape(out_grad, node.inputs[0].shape)
 
 
@@ -220,6 +223,31 @@ class Summation(TensorOp):
 def summation(a, axes=None):
     return Summation(axes)(a)
 
+
+class Maximum(TensorOp):
+    def __init__(self, axes: Optional[tuple] = None):
+        self.axes = axes
+
+    def compute(self, a):
+        if self.axes is None:
+            self.axes = tuple(range(len(a.shape)))
+        return array_api.max(a, self.axes)
+
+    def gradient(self, out_grad, node):
+        broadcast_shape = list(node.inputs[0].shape)
+        for axis in self.axes:
+            broadcast_shape[axis] = 1
+        input_realized = node.inputs[0].realize_cached_data()
+        reshaped_grad = reshape(out_grad, tuple(broadcast_shape))
+        broadcasted_grad = broadcast_to(reshaped_grad, node.inputs[0].shape)
+        ones_where_max = (input_realized - array_api.max(
+           input_realized, axis=self.axes, keepdims=True
+        )) >= 0
+        return broadcasted_grad * ones_where_max
+
+
+def maximum(a, axes=None):
+    return Maximum(axes)(a)
 
 class MatMul(TensorOp):
     def compute(self, a, b):
