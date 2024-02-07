@@ -200,6 +200,22 @@ def broadcast_to(a, shape):
     return BroadcastTo(shape)(a)
 
 
+def implicit_broadcast(a, target_shape):
+    broadcast_shape = list(target_shape)
+    volume = numpy.prod(a.shape)
+    target_volume = numpy.prod(target_shape)
+    for i in reversed(range(len(target_shape))):
+        if volume >= target_volume:
+            break
+        target_volume /= target_shape[i]
+        broadcast_shape[i] = 1
+
+    if volume > target_volume:
+        raise ValueError("Cannot broadcast shapes {} and {}".format(a.shape, target_shape))
+
+    return broadcast_to(reshape(a, tuple(broadcast_shape)), target_shape)
+
+
 class Summation(TensorOp):
     def __init__(self, axes: Optional[tuple] = None):
         self.axes = axes
@@ -238,13 +254,14 @@ class Maximum(TensorOp):
         reshaped_grad = reshape(out_grad, tuple(broadcast_shape))
         broadcasted_grad = broadcast_to(reshaped_grad, node.inputs[0].shape)
         ones_where_max = (input_realized - array_api.max(
-           input_realized, axis=self.axes, keepdims=True
+            input_realized, axis=self.axes, keepdims=True
         )) >= 0
         return broadcasted_grad * ones_where_max
 
 
 def maximum(a, axes=None):
     return Maximum(axes)(a)
+
 
 class MatMul(TensorOp):
     def compute(self, a, b):
@@ -254,7 +271,7 @@ class MatMul(TensorOp):
         returned_grad_1 = matmul(out_grad, transpose(node.inputs[1]))
         returned_grad_2 = matmul(transpose(node.inputs[0]), out_grad)
         if len(node.inputs[0].shape) < len(out_grad.shape):
-            returned_grad_1 = summation(returned_grad_1, tuple(range(len(out_grad.shape)-len(node.inputs[0].shape))))
+            returned_grad_1 = summation(returned_grad_1, tuple(range(len(out_grad.shape) - len(node.inputs[0].shape))))
         if len(node.inputs[1].shape) < len(out_grad.shape):
             returned_grad_2 = summation(returned_grad_2, tuple(range(len(out_grad.shape) - len(node.inputs[1].shape))))
         return reshape(returned_grad_1, node.inputs[0].shape), reshape(returned_grad_2, node.inputs[1].shape)

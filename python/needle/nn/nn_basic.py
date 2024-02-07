@@ -151,14 +151,16 @@ class LayerNorm1d(Module):
         super().__init__()
         self.dim = dim
         self.eps = eps
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+
+        self.w = Parameter(init.ones(dim, device=device, dtype=dtype))
+        self.b = Parameter(init.zeros(dim, device=device, dtype=dtype))
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        assert x.shape[-1] == self.dim
+        expectation = ops.implicit_broadcast(ops.summation(x, axes=(1,)) / self.dim, x.shape)
+        variance = ops.summation((x - expectation) ** 2, axes=(1,)) / self.dim
+        x_hat = (x - expectation) / ops.implicit_broadcast((variance + self.eps)**(1/2), x.shape)
+        return x_hat * ops.broadcast_to(ops.reshape(self.w, (1, self.dim)), (x.shape[0], self.dim)) + ops.broadcast_to(ops.reshape(self.b, (1, self.dim)), (x.shape[0], self.dim))
 
 
 class Dropout(Module):
