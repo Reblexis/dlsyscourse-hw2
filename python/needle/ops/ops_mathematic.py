@@ -166,12 +166,9 @@ class Reshape(TensorOp):
         self.shape = shape
 
     def compute(self, a):
-        print(f"Reshape: {a.shape} -> {self.shape}")
         return array_api.reshape(a, self.shape)
 
     def gradient(self, out_grad, node):
-        # print all shapes
-        print(f"gradient reshape: {out_grad.shape} -> {node.inputs[0].shape}")
         return reshape(out_grad, node.inputs[0].shape)
 
 
