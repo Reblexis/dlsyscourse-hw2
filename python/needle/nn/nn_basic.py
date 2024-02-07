@@ -102,10 +102,9 @@ class Linear(Module):
 
 
 class Flatten(Module):
-    def forward(self, X):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+    def forward(self, X) -> Tensor:
+        return ops.reshape(X, (X.shape[0], -1))
+
 
 
 class ReLU(Module):
