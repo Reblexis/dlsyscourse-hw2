@@ -200,11 +200,12 @@ def broadcast_to(a, shape):
     return BroadcastTo(shape)(a)
 
 
-def implicit_broadcast(a, target_shape):
+def implicit_broadcast(a, target_shape, backward=True):
     broadcast_shape = list(target_shape)
     volume = numpy.prod(a.shape)
     target_volume = numpy.prod(target_shape)
-    for i in reversed(range(len(target_shape))):
+    the_range = reversed(range(len(target_shape))) if backward else range(len(target_shape))
+    for i in the_range:
         if volume >= target_volume:
             break
         target_volume /= target_shape[i]

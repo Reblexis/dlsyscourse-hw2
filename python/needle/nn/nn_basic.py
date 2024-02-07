@@ -81,7 +81,7 @@ class Identity(Module):
 
 class Linear(Module):
     def __init__(
-        self, in_features, out_features, bias=True, device=None, dtype="float32"
+            self, in_features, out_features, bias=True, device=None, dtype="float32"
     ):
         super().__init__()
         self.in_features = in_features
@@ -106,7 +106,6 @@ class Flatten(Module):
         return ops.reshape(X, (X.shape[0], -1))
 
 
-
 class ReLU(Module):
     def forward(self, x: Tensor) -> Tensor:
         return ops.relu(x)
@@ -126,7 +125,7 @@ class Sequential(Module):
 class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor):
         Iy = init.one_hot(logits.shape[1], y, device=logits.device, dtype=logits.dtype)
-        return ops.summation(ops.logsumexp(logits, axes=(1,)) - ops.summation(logits * Iy, axes=(1,)))/logits.shape[0]
+        return ops.summation(ops.logsumexp(logits, axes=(1,)) - ops.summation(logits * Iy, axes=(1,))) / logits.shape[0]
 
 
 class BatchNorm1d(Module):
@@ -135,14 +134,25 @@ class BatchNorm1d(Module):
         self.dim = dim
         self.eps = eps
         self.momentum = momentum
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+
+        self.running_mean = init.zeros(dim, device=device, dtype=dtype)
+        self.running_var = init.ones(dim, device=device, dtype=dtype)
+
+        self.weight = Parameter(init.ones(dim, device=device, dtype=dtype))
+        self.bias = Parameter(init.zeros(dim, device=device, dtype=dtype))
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        mean = ops.summation(x, axes=(0,)) / x.shape[0] if self.training else self.running_mean
+        mean_broadcasted = ops.implicit_broadcast(mean, x.shape, False)
+        variance = ops.summation((x - mean_broadcasted) ** 2, axes=(0,)) / x.shape[
+            0] if self.training else self.running_var
+
+        if self.training:
+            self.running_mean = self.momentum * mean + (1 - self.momentum) * self.running_mean
+            self.running_var = self.momentum * variance + (1 - self.momentum) * self.running_var
+
+        x_hat = (x - mean_broadcasted) / ops.implicit_broadcast((variance + self.eps) ** (1 / 2), x.shape, False)
+        return x_hat * ops.implicit_broadcast(self.weight, x.shape, False) + ops.implicit_broadcast(self.bias, x.shape, False)
 
 
 class LayerNorm1d(Module):
@@ -151,15 +161,16 @@ class LayerNorm1d(Module):
         self.dim = dim
         self.eps = eps
 
-        self.w = Parameter(init.ones(dim, device=device, dtype=dtype))
-        self.b = Parameter(init.zeros(dim, device=device, dtype=dtype))
+        self.weight = Parameter(init.ones(dim, device=device, dtype=dtype))
+        self.bias = Parameter(init.zeros(dim, device=device, dtype=dtype))
 
     def forward(self, x: Tensor) -> Tensor:
         assert x.shape[-1] == self.dim
         expectation = ops.implicit_broadcast(ops.summation(x, axes=(1,)) / self.dim, x.shape)
         variance = ops.summation((x - expectation) ** 2, axes=(1,)) / self.dim
-        x_hat = (x - expectation) / ops.implicit_broadcast((variance + self.eps)**(1/2), x.shape)
-        return x_hat * ops.broadcast_to(ops.reshape(self.w, (1, self.dim)), (x.shape[0], self.dim)) + ops.broadcast_to(ops.reshape(self.b, (1, self.dim)), (x.shape[0], self.dim))
+        x_hat = (x - expectation) / ops.implicit_broadcast((variance + self.eps) ** (1 / 2), x.shape)
+        return x_hat * ops.broadcast_to(ops.reshape(self.weight, (1, self.dim)), (x.shape[0], self.dim)) + ops.broadcast_to(
+            ops.reshape(self.bias, (1, self.dim)), (x.shape[0], self.dim))
 
 
 class Dropout(Module):
