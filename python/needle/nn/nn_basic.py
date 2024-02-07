@@ -126,8 +126,7 @@ class Sequential(Module):
 
 class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor):
-        Iy = np.zeros((logits.shape[0], logits.shape[1]))
-        Iy[np.arange(logits.shape[0]), y.numpy()] = 1
+        Iy = init.one_hot(logits.shape[1], y, device=logits.device, dtype=logits.dtype)
         return ops.summation(ops.logsumexp(logits, axes=(1,)) - ops.summation(logits * Iy, axes=(1,)))/logits.shape[0]
 
 
