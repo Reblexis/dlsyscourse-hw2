@@ -185,13 +185,10 @@ class Dropout(Module):
         return x * mask / (1 - self.p)
 
 
-
 class Residual(Module):
     def __init__(self, fn: Module):
         super().__init__()
         self.fn = fn
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return x + self.fn(x)
