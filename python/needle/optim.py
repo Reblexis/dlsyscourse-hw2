@@ -20,13 +20,13 @@ class SGD(Optimizer):
         super().__init__(params)
         self.lr = lr
         self.momentum = momentum
-        self.u = {}
+        self.u = {self.params[i]: ndl.zeros_like(self.params[i]) for i in range(len(self.params))}
         self.weight_decay = weight_decay
 
     def step(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        for w in self.params:
+            self.u[w] = ndl.Tensor(self.momentum * self.u[w] + (1 - self.momentum) * w.grad.data, dtype=w.dtype, device=w.device)
+            w.data = w.data - self.lr * self.u[w]
 
     def clip_grad_norm(self, max_norm=0.25):
         """
