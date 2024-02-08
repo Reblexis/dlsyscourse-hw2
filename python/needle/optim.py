@@ -55,10 +55,16 @@ class Adam(Optimizer):
         self.weight_decay = weight_decay
         self.t = 0
 
-        self.m = {}
-        self.v = {}
+        self.m = {self.params[i]: ndl.zeros_like(self.params[i]) for i in range(len(self.params))}
+        self.v = {self.params[i]: ndl.zeros_like(self.params[i]) for i in range(len(self.params))}
 
     def step(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.t += 1
+        for w in self.params:
+            # TODO: Fix dtype conversion
+            g = ndl.Tensor(w.grad.data + self.weight_decay * w.data, device=w.device, dtype=w.dtype, requires_grad=False)
+            self.m[w] = self.beta1 * self.m[w] + (1 - self.beta1) * g
+            self.v[w] = self.beta2 * self.v[w] + (1 - self.beta2) * g ** 2
+            m_hat = self.m[w] / (1 - self.beta1 ** self.t)
+            v_hat = self.v[w] / (1 - self.beta2 ** self.t)
+            w.data = w.data - self.lr * m_hat / (v_hat ** (1/2) + self.eps)
