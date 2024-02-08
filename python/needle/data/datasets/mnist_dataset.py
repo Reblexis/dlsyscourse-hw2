@@ -65,10 +65,12 @@ class MNISTDataset(Dataset):
         self.transforms = transforms
 
     def __getitem__(self, index) -> object:
-        x = self.X[index].reshape(28, 28, 1)
+        x = self.X[index].reshape(-1, 28, 28, 1)
         y = self.y[index]
+        for i in range(x.shape[0]):
+            x[i] = self.apply_transforms(x[i])
 
-        return self.apply_transforms(x), y
+        return x, y
 
     def __len__(self) -> int:
         return len(self.X)
