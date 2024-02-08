@@ -61,7 +61,6 @@ class Adam(Optimizer):
     def step(self):
         self.t += 1
         for w in self.params:
-            # TODO: Fix dtype conversion
             g = ndl.Tensor(w.grad.data + self.weight_decay * w.data, device=w.device, dtype=w.dtype, requires_grad=False)
             self.m[w] = self.beta1 * self.m[w] + (1 - self.beta1) * g
             self.v[w] = self.beta2 * self.v[w] + (1 - self.beta2) * g ** 2

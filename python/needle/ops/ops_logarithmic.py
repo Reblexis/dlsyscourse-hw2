@@ -7,6 +7,7 @@ from .ops_mathematic import *
 
 import numpy as array_api
 
+
 class LogSoftmax(TensorOp):
     def compute(self, Z):
         ### BEGIN YOUR SOLUTION
@@ -28,13 +29,14 @@ class LogSumExp(TensorOp):
         self.axes = axes
 
     def compute(self, Z):
-        if self.axes is None:
-            self.axes = tuple(range(len(Z.shape)))
+        ### BEGIN YOUR SOLUTION
         max_Z = array_api.max(Z, axis=self.axes)
         max_Z_keepdim = array_api.max(Z, axis=self.axes, keepdims=True)
         return array_api.log(array_api.sum(array_api.exp(Z - max_Z_keepdim), axis=self.axes)) + max_Z
+        ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
+        ### BEGIN YOUR SOLUTION
         Z = node.inputs[0]
         exp_t = exp(Z - Z.realize_cached_data().max(axis=self.axes, keepdims=True))
         sum_t = summation(exp_t, axes=self.axes)
@@ -51,13 +53,8 @@ class LogSumExp(TensorOp):
             g2 = broadcast_to(g1.reshape(exp_t_shape), exp_t.shape)
 
         return g2 * exp_t
-
+        ### END YOUR SOLUTION
 
 
 def logsumexp(a, axes=None):
-    if axes is None:
-        axes = tuple(range(len(a.shape)))
-    max_a = maximum(a, axes)
-    max_a_keepdim = broadcast_to(reshape(max_a, [1 if i in axes else a.shape[i] for i in range(len(a.shape))]), a.shape)
-    return log(summation(exp(a - max_a_keepdim), axes)) + max_a
-
+    return LogSumExp(axes=axes)(a)

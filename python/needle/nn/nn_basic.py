@@ -125,7 +125,8 @@ class Sequential(Module):
 class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor):
         Iy = init.one_hot(logits.shape[1], y, device=logits.device, dtype=logits.dtype)
-        return ops.summation(ops.logsumexp(logits, axes=(1,)) - ops.summation(logits * Iy, axes=(1,))) / logits.shape[0]
+        return (ops.summation(ops.logsumexp(logits, axes=(1,)) - ops.summation(logits * Iy, axes=(1,))) /
+                Tensor(logits.shape[0], dtype=logits.dtype, device=logits.device, requires_grad=False))
 
 
 class BatchNorm1d(Module):
@@ -148,8 +149,8 @@ class BatchNorm1d(Module):
             0] if self.training else self.running_var
 
         if self.training:
-            self.running_mean = self.momentum * mean + (1 - self.momentum) * self.running_mean
-            self.running_var = self.momentum * variance + (1 - self.momentum) * self.running_var
+            self.running_mean = (self.momentum * mean + (1 - self.momentum) * self.running_mean).data
+            self.running_var = (self.momentum * variance + (1 - self.momentum) * self.running_var).data
 
         x_hat = (x - mean_broadcasted) / ops.implicit_broadcast((variance + self.eps) ** (1 / 2), x.shape, False)
         return x_hat * ops.implicit_broadcast(self.weight, x.shape, False) + ops.implicit_broadcast(self.bias, x.shape, False)
