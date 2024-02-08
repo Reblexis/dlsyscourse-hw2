@@ -323,7 +323,8 @@ class ReLU(TensorOp):
         return array_api.maximum(a, 0)
 
     def gradient(self, out_grad, node):
-        return Tensor(out_grad.numpy() * (node.inputs[0].numpy() > 0))
+        bigger_than_zero = node.inputs[0].cached_data > 0
+        return out_grad * bigger_than_zero
 
 
 def relu(a):
