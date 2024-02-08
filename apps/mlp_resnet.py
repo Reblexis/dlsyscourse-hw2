@@ -88,9 +88,10 @@ def train_mnist(
 
     last_stats = None
     for epoch_num in range(epochs):
-        train_acc, train_loss = epoch(train_dataloader, model, opt)
-        test_acc, test_loss = epoch(test_dataloader, model)
-        last_stats = (train_acc, train_loss, test_acc, test_loss)
+        train_err, train_loss = epoch(train_dataloader, model, opt)
+        test_err, test_loss = epoch(test_dataloader, model)
+        last_stats = (train_err, train_loss, test_err, test_loss)
+        print(last_stats)
 
     return last_stats
 
