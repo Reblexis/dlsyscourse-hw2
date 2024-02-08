@@ -1,12 +1,13 @@
 import numpy as np
 
+
 class Transform:
     def __call__(self, x):
         raise NotImplementedError
 
 
 class RandomFlipHorizontal(Transform):
-    def __init__(self, p = 0.5):
+    def __init__(self, p=0.5):
         self.p = p
 
     def __call__(self, img):
@@ -36,9 +37,9 @@ class RandomCrop(Transform):
             H x W x C NAArray of cliped image
         Note: generate the image shifted by shift_x, shift_y specified below
         """
-        shift_x, shift_y = np.random.randint(low=-self.padding, high=self.padding+1, size=2)
-        img_pad = np.pad(img, ((self.padding,), (self.padding, ), (0,)), mode='constant')
+        shift_x, shift_y = np.random.randint(low=-self.padding, high=self.padding + 1, size=2)
+        img_pad = np.pad(img, ((self.padding,), (self.padding,), (0,)), mode='constant')
         shift_x += self.padding
         shift_y += self.padding
-        cropped_img = img_pad[shift_x:shift_x+img.shape[0], shift_y:shift_y+img.shape[1], :]
+        cropped_img = img_pad[shift_x:shift_x + img.shape[0], shift_y:shift_y + img.shape[1], :]
         return cropped_img
