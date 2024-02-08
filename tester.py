@@ -1,4 +1,4 @@
-from tests.hw2.test_data import *
+from tests.hw2.test_nn_and_optim import *
 
 if __name__ == "__main__":
-    test_dataloader_mnist()
+    test_mlp_train_mnist_1()

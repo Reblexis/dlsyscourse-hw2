@@ -179,10 +179,16 @@ class Dropout(Module):
         self.p = p
 
     def forward(self, x: Tensor) -> Tensor:
-        if not self.training:
+        ### BEGIN YOUR SOLUTION
+        if self.training:
+            bernoulli = np.random.binomial(1, self.p, x.shape)
+            bernoulli = (np.negative(bernoulli) + 1) / (1 - self.p)
+            '''Notice: Convert it to tensor to ensure the same dtype. Numpy array should be converted to tensor first'''
+            return x * Tensor(bernoulli, dtype=x.dtype, requires_grad=False)
+        else:
             return x
-        mask = init.randb(*x.shape, p=self.p, device=x.device, dtype=x.dtype)
-        return x * mask / (1 - self.p)
+        ### END YOUR SOLUTION
+
 
 
 class Residual(Module):
